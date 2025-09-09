@@ -1,0 +1,47 @@
+name: Esegui script ogni 10 minuti
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # ogni 10 minuti
+  workflow_dispatch:         # esecuzione manuale possibile
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: run-script-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            pip install requests beautifulsoup4 lxml
+          fi
+
+      - name: Run script
+        run: python script.py
+
+      - name: Commit sent.txt (if changed)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add sent.txt || echo "no sent.txt to add"
+          git commit -m "Aggiorna sent.txt" || echo "No changes to commit"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
