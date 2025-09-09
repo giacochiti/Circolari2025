@@ -74,6 +74,9 @@ if __name__ == "__main__":
     circolari = get_all_circulars()
     new_circolari = [c for c in circolari if c[2] not in sent_links]
 
+    # Inverti l’ordine: prima le circolari più vecchie tra le nuove
+    new_circolari.reverse()
+
     if not new_circolari:
         print("Nessuna circolare nuova da inviare.")
     else:
@@ -82,3 +85,4 @@ if __name__ == "__main__":
             send_telegram_message(message)
             print("Messaggio inviato:", message)
             save_sent_circular(link)
+
